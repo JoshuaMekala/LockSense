@@ -8,7 +8,7 @@ cam.set(4, 480) # set video height
 face_detector = cv2.CascadeClassifier('Cascades/haarcascade_frontalface_default.xml')
 
 # For each person, enter one numeric face id
-face_id = input('\n enter user initials end press <return> ==>  ')
+face_id = input('\n enter user UCARD ID number end press <return> ==>  ')
 
 print("\n [INFO] Initializing face capture. Look the camera and wait ...")
 # Initialize individual sampling face count
