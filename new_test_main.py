@@ -13,10 +13,27 @@ recognizer.read('trainer/trainer.yml')
 cascadePath = "haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascadePath)
 
-font = cv2.FONT_HERSHEY_SIMPLEX
-kit = ServoKit(channels=16)
+# Global variables
 servo_turned = False
-current_angle = kit.servo[8].angle
+duty = 0
+
+# Setting up servo pins
+GPIO.setup(17,GPIO.OUT)
+p = GPIO.PWM(17, 50)
+p.start(0)
+
+
+# Setting angle formula
+def setAngle(angle):
+    global duty
+    duty = angle / 18 + 2
+    GPIO.output(17,True)
+    p.ChangeDutyCycle(duty)
+    sleep(1)
+    GPIO.output(17,False)
+    p.ChangeDutyCycle(0)
+
+font = cv2.FONT_HERSHEY_SIMPLEX
 # Define names associated with face IDs
 names = ['None', 'Josh', 'Dom', 'Ilza', 'Gabriel', 'Williams', 'Yetunde', 'Violin', 'Laila', 'Praise', 'Bode', 'Micheal']
 
@@ -27,12 +44,13 @@ rfid_to_name = {
 }
 
 def ExistingUser():
+    global servo_turned, duty
     reader = SimpleMFRC522()
     print("Please scan your RFID card")
     try:
         id, text = reader.read()
         if id in rfid_to_name:
-            print(f"RFID {id} recognized. Proceeding with facial recognition for {rfid_to_name[id]}...")
+            print(f"RFID recognized. Proceeding with facial recognition for {rfid_to_name[id]}...")
             # Initialize and start realtime video capture
             cam = cv2.VideoCapture(0)
             cam.set(3, 640)  # set video width
@@ -70,15 +88,17 @@ def ExistingUser():
 
                     # Check if the recognized face matches the RFID tag
                     if face_name == rfid_to_name[id]:
-                          if not servo_turned: # If the servo hasn't been turned yet it will unlock the lock if the servo is closed, and lock it if the lock is unlocked. 
-                            if (current_angle < 180): # checks if the servo angle is in the unlocked position.
-                                kit.servo[8].angle = 180 # Changes the angle to locked
-                                servo_turned = True
-                            else:
-                                kit.servo[8].angle = 0 # Changes the angle to  unlocked.
-                                servo_turned = True  
-                        # print(f"Identity confirmed: {face_name}")
+                        if (100 - confidence) > 60:
+                            if not servo_turned: # If the servo hasn't been turned yet it will unlock the lock if the servo is closed, and lock it if the lock is unlocked. 
+                                #if (duty == 12): # checks if the servo angle is in the unlocked position.
+                                    setAngle(0)
+                                    servo_turned = True
+                                    print(f"Welcome {face_name}")
+                                    p.stop()
+                                    sys.exit()
+                            # print(f"Identity confirmed: {face_name}")
                     else:
+                        setAngle(180)
                         print(f"Identity mismatch: found {face_name}, expected {rfid_to_name[id]}")
                         sys.exit()
 
