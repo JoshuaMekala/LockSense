@@ -22,13 +22,12 @@ id = 0
 
 
 names = ['None', 'Josh', 'Dom', 'Ilza', 'Gabriel', 'Williams', 'Yetunde', 'Violin', 'Laila', 'Praise', 'Bode', 'Micheal']
-
+idNos = [245453456310,423520521598]
 def ExistingUser():
     
     reader = SimpleMFRC522() 
     print("Please scan your RFID card")
     try:
-            idNos = [245453456310,423520521598]
             id, text = reader.read()         
             #print(id)
             if id in idNos:
